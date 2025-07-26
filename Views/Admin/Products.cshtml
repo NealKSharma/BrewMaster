@@ -1,0 +1,199 @@
+﻿@model BrewMaster.Models.ProductViewModel
+@using System.Data
+
+@{
+    ViewData["Title"] = "Product Management Page";
+    var table = ViewBag.ProductTable as DataTable;
+}
+
+<style>
+    .container {
+        max-width: 1600px;
+        margin: .5rem auto;
+        padding: 0 20px;
+        color: #F5DEB3;
+    }
+
+    .product-container {
+        display: grid;
+        grid-template-columns: minmax(280px, 1fr) 5fr;
+        gap: 1rem;
+        min-height: 700px;
+    }
+
+    .product-management {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        padding: 0.4rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(245, 222, 179, 0.1);
+        animation: slideUp 0.3s ease-out;
+        position: sticky;
+    }
+
+        .product-management h2, .product-display h2 {
+            color: #F5DEB3;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: .5rem;
+            text-align: center;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            border-bottom: 2px solid #8B4513;
+        }
+
+    .product-display {
+        background: rgba(255, 255, 255, 0.04);
+        padding: .4rem;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(245, 222, 179, 0.1);
+        animation: slideUp 0.3s ease-out;
+        min-height: 500px;
+    }
+
+    .form-body {
+        padding: .5rem .5rem;
+    }
+
+    .form-label {
+        font-size: 0.8rem;
+    }
+
+    .form-input,
+    .form-select {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .button-row {
+        display: flex;
+        gap: 0.75rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .btn-form {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        gap: 0.5rem;
+        min-width: 80px;
+    }
+
+    
+</style>
+
+
+<div class="product-container">
+
+    <div class="product-management">
+        <h2>Manager</h2>
+        <form asp-action="ManageProducts" method="post" enctype="multipart/form-data" class="form-body">
+            <div class="form-group">
+                <label asp-for="ProductId" class="form-label">Product ID</label>
+                <input asp-for="ProductId" class="form-input" placeholder="Enter the Product ID" />
+                <span asp-validation-for="ProductId" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ProductName" class="form-label">Product Name</label>
+                <input asp-for="ProductName" class="form-input" placeholder="Enter the Product Name" />
+                <span asp-validation-for="ProductName" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ProductDescription" class="form-label">Product Description</label>
+                <textarea asp-for="ProductDescription" class="form-input" rows="4" placeholder="Enter the Product Description"></textarea>
+                <span asp-validation-for="ProductDescription" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Price" class="form-label">Price</label>
+                <input asp-for="Price" class="form-input" placeholder="Enter the price" />
+                <span asp-validation-for="Price" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Stock" class="form-label">Stock</label>
+                <input asp-for="Stock" class="form-input" placeholder="Enter the stock" />
+                <span asp-validation-for="Stock" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ImageUpload" class="form-label">Product Image</label>
+                <input asp-for="ImageUpload" type="file" class="form-input" />
+                <span asp-validation-for="ImageUpload" class="validation-error"></span>
+            </div>
+
+            <div class="button-group">
+                <div class="button-row">
+                    <button type="submit" name="action" value="Add" class="btn-form btn-success">Add</button>
+                    <button type="submit" name="action" value="Update" class="btn-form btn-warning">Update</button>
+                    <button type="submit" name="action" value="Delete" class="btn-form btn-danger">Delete</button>
+                </div>
+                <div class="button-row">
+                    <button type="submit" name="action" value="Search" class="btn-form btn-primary">Search</button>
+                    <button type="submit" name="action" value="ShowAll" class="btn-form btn-primary">Show All</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="product-display">
+        @if (table != null && table.Rows.Count > 0)
+        {
+            <h3>Products List</h3>
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        @foreach (DataColumn col in table.Columns)
+                        {
+                            <th>@col.ColumnName</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (DataRow row in table.Rows)
+                    {
+                        <tr>
+                            @foreach (var item in row.ItemArray)
+                            {
+                                <td>
+                                    @if (item is byte[] bytes)
+                                    {
+                                        var base64 = Convert.ToBase64String(bytes);
+                                        <img src="data:image/png;base64,@base64" width="60" />
+                                    }
+                                    else
+                                    {
+                                        @item
+                                    }
+                                </td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <p>No products found.</p>
+        }
+    </div>
+</div>

@@ -1,0 +1,115 @@
+﻿@model BrewMaster.Models.SignUpViewModel
+
+@{
+    ViewData["Title"] = "Sign Up";
+}
+
+<style>
+    .form-container{
+        max-width: 1000px;
+    }
+
+    .form-columns {
+        display: flex;
+        justify-content: space-between;
+        gap: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .form-column {
+        flex: 1 1 45%;
+        min-width: 250px;
+    }
+
+    .full-width {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1.1rem;
+        margin-top: 1.5rem;
+    }
+
+    .form-select {
+        overflow-y: hidden;
+    }
+
+    .label-inline {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .label-inline .form-label {
+            margin-bottom: 0;
+        }
+
+        .label-inline .form-text {
+            font-size: 0.8rem;
+            color: #C0A672;
+            margin-top: 0;
+        }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h2>Create Your Account</h2>
+    </div>
+
+    <form asp-action="SignUp" method="post" class="form-body">
+        <div class="form-columns">
+            <!-- LEFT COLUMN -->
+            <div class="form-column">
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label"></label>
+                    <input asp-for="Email" class="form-input" placeholder="Enter your email" />
+                    <span asp-validation-for="Email" class="validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Username" class="form-label"></label>
+                    <input asp-for="Username" class="form-input" placeholder="Choose a username" />
+                    <span asp-validation-for="Username" class="validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-input" type="password" placeholder="Create a password" />
+                    <span asp-validation-for="Password" class="validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
+                    <input asp-for="ConfirmPassword" class="form-input" type="password" placeholder="Confirm your password" />
+                    <span asp-validation-for="ConfirmPassword" class="validation-error"></span>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN -->
+            <div class="form-column">
+                <div class="form-group">
+                    <label asp-for="SecurityQuestion" class="form-label">Choose a Security Question</label>
+                    <select asp-for="SecurityQuestion" asp-items="Model.SecurityQuestions" class="form-select" size="8">
+                    </select>
+                    <span asp-validation-for="SecurityQuestion" class="validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <div class="label-inline">
+                        <label asp-for="SecurityAnswer" class="form-label">Security Answer </label>
+                        <small class="form-text">(You will need this answer to recover your account)</small>
+                    </div>
+                    <input asp-for="SecurityAnswer" class="form-input" placeholder="Enter your answer" />
+                    <span asp-validation-for="SecurityAnswer" class="validation-error"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- FULL WIDTH BUTTON BELOW -->
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary full-width">Create Account</button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

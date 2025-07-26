@@ -1,0 +1,95 @@
+﻿@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    string? userRole = HttpContextAccessor.HttpContext?.Session.GetString("UserRole");
+    string? username = HttpContextAccessor.HttpContext?.Session.GetString("UserName");
+    bool isLoggedIn = !string.IsNullOrEmpty(userRole);
+
+    string Controller = "Home";
+    string Action = "Index";
+
+    if (userRole == "User")
+    {
+        Controller = "User";
+        Action = "Index";
+    }
+    else if (userRole == "Admin")
+    {
+        Controller = "Admin";
+        Action = "Index";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - BrewMaster</title>
+    <link rel="stylesheet" href="~/BrewMaster.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <!-- Left: Logo -->
+            <a class="logo" asp-controller="@Controller" asp-action="@Action">☕ BrewMaster</a>
+
+            <!-- Center: Navigation menu -->
+            <div class="nav-center">
+                <ul class="nav-menu">
+                    
+                    @if(!isLoggedIn)
+                    {
+                        <li><a class="btn" asp-controller="Home" asp-action="Index">Home</a></li>
+                    }
+                    else if (userRole == "User")
+                    {
+                        <li><a class="btn" asp-controller="User" asp-action="Index">Products</a></li>
+                        <li><a class="btn" asp-controller="User" asp-action="Cart">Cart</a></li>
+                        <li><a class="btn" asp-controller="User" asp-action="Account">Account</a></li>
+                    }
+                    else if (userRole == "Admin")
+                    {
+                        <li><a class="btn" asp-controller="Admin" asp-action="Index">Dashboard</a></li>
+                        <li><a class="btn" asp-controller="Admin" asp-action="Logs">Log Management</a></li>
+                        <li><a class="btn" asp-controller="Admin" asp-action="Users">User Management</a></li>
+                        <li><a class="btn" asp-controller="Admin" asp-action="Products">Product Management</a></li>
+                    }
+                </ul>
+            </div>
+
+            <!-- Right: Logout button or empty -->
+            <div class="nav-right">
+                <ul class="nav-menu">
+                @if (isLoggedIn)
+                {
+                        <li><a class="btn" asp-controller="Home" asp-action="Logout">Logout</a></li>
+                }
+                    @if (!isLoggedIn)
+                    {
+                        <li><a class="btn" asp-controller="Home" asp-action="SignUp">Sign Up</a></li>
+                        <li><a class="btn" asp-controller="Home" asp-action="Login">Login</a></li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <main>
+            @RenderBody()
+        </main>
+    </div>
+
+    <div class="floating-social-links">
+        <a href="#" class="social-link">Social</a>
+        <a href="#" class="social-link">Social</a>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
