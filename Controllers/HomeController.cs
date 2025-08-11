@@ -1,5 +1,4 @@
 using BrewMaster.Data;
-using BrewMaster.Helpers;
 using BrewMaster.Models;
 using BrewMaster.Utilities;
 using Microsoft.AspNetCore.Mvc;
@@ -8,21 +7,56 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace BrewMaster.Controllers
 {
     [AllowAnonymousOnly]
-    public class HomeController : Controller
+    public class HomeController(DbHelper helper, ErrorLogger errorLogger) : Controller
     {
-        private readonly DbHelper _helper;
-        private readonly ErrorLogger _errorLogger;
-
-        public HomeController(DbHelper helper, ErrorLogger errorLogger)
-        {
-            _helper = helper;
-            _errorLogger = errorLogger;
-        }
+        private readonly DbHelper _helper = helper;
+        private readonly ErrorLogger _errorLogger = errorLogger;
 
         [HttpGet]
         public IActionResult Index()
         {
-            return View();
+            try
+            {
+                var model = new HomeViewModel
+                {
+                    Products = _helper.GetAvailableProducts(),
+                    IsGuest = true
+                };
+
+                return View("~/Views/User/Index.cshtml", model);
+            }
+            catch (Exception ex)
+            {
+                _errorLogger.LogError(ex);
+                TempData["ToastMessage"] = "An error occurred while loading products.";
+                TempData["ToastType"] = "error";
+                return View("~/Views/User/Index.cshtml", new HomeViewModel { IsGuest = true });
+            }
+        }
+
+        [HttpGet]
+        public IActionResult ProductImage(int id)
+        {
+            try
+            {
+                var imageData = _helper.GetProductImage(id);
+
+                if (imageData != null && imageData.Length > 0)
+                {
+                    return File(imageData, "image/png");
+                }
+
+                var placeholderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "placeholder.png");
+                var placeholderBytes = System.IO.File.ReadAllBytes(placeholderPath);
+                return File(placeholderBytes, "image/png");
+            }
+            catch (Exception ex)
+            {
+                _errorLogger.LogError(ex);
+                var placeholderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "Images", "placeholder.png");
+                var placeholderBytes = System.IO.File.ReadAllBytes(placeholderPath);
+                return File(placeholderBytes, "image/png");
+            }
         }
 
         [HttpGet]
@@ -76,14 +110,14 @@ namespace BrewMaster.Controllers
         {
             return new List<SelectListItem>
             {
-                new SelectListItem { Text = "What was the name of your first pet?", Value = "What was the name of your first pet?" },
-                new SelectListItem { Text = "In which city were you born?", Value = "In which city were you born?" },
-                new SelectListItem { Text = "What was your mother's maiden name?", Value = "What was your mother's maiden name?" },
-                new SelectListItem { Text = "What was the name of your first school?", Value = "What was the name of your first school?" },
-                new SelectListItem { Text = "What is your favorite movie?", Value = "What is your favorite movie?" },
-                new SelectListItem { Text = "What was the make of your first car?", Value = "What was the make of your first car?" },
-                new SelectListItem { Text = "What is your favorite book?", Value = "What is your favorite book?" },
-                new SelectListItem { Text = "What was the name of your childhood best friend?", Value = "What was the name of your childhood best friend?" }
+                new() { Text = "What was the name of your first pet?", Value = "What was the name of your first pet?" },
+                new() { Text = "In which city were you born?", Value = "In which city were you born?" },
+                new() { Text = "What was your mother's maiden name?", Value = "What was your mother's maiden name?" },
+                new() { Text = "What was the name of your first school?", Value = "What was the name of your first school?" },
+                new() { Text = "What is your favorite movie?", Value = "What is your favorite movie?" },
+                new() { Text = "What was the make of your first car?", Value = "What was the make of your first car?" },
+                new() { Text = "What is your favorite book?", Value = "What is your favorite book?" },
+                new() { Text = "What was the name of your childhood best friend?", Value = "What was the name of your childhood best friend?" }
             };
         }
 

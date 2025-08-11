@@ -5,14 +5,9 @@ using System.Threading.Tasks;
 
 namespace BrewMaster.Middleware
 {
-    public class ErrorLoggingMiddleware
+    public class ErrorLoggingMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
-
-        public ErrorLoggingMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
+        private readonly RequestDelegate _next = next;
 
         public async Task InvokeAsync(HttpContext context, ErrorLogger errorLogger)
         {

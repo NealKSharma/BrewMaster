@@ -1,10 +1,9 @@
 using BrewMaster.Data;
-using BrewMaster.Helpers;
 using BrewMaster.Middleware;
+using BrewMaster.Utilities;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
@@ -12,16 +11,20 @@ builder.Services.AddScoped<ErrorLogger>();
 builder.Services.AddScoped<DbHelper>();
 builder.Services.AddSession();
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = null;
+});
+
 var app = builder.Build();
 
 app.UseMiddleware<ErrorLoggingMiddleware>();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
 }
-if (app.Environment.IsDevelopment())
+else
 {
     app.UseDeveloperExceptionPage();
 }

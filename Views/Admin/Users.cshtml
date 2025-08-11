@@ -1,9 +1,272 @@
-﻿@{
-    ViewData["Title"] = "User Management Page";
+﻿@model UserManagementViewModel
+
+@{
+    ViewData["Title"] = "User Management";
 }
 
-<div>
+<div class="container">
+    <div class="users-container">
+        <!-- Left Form Panel -->
+        <div class="user-management">
+            <h2>User Manager</h2>
+            <form asp-action="Users" method="get" class="form-body" id="userForm">
+                <div class="form-group">
+                    <label asp-for="Username" class="form-label">Username *</label>
+                    <input asp-for="Username" name="username" class="form-input" placeholder="Enter username" />
+                    <span asp-validation-for="Username" class="validation-error"></span>
+                </div>
 
-    <h1>User management</h1>
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label">Email *</label>
+                    <input asp-for="Email" name="email" class="form-input" type="email" placeholder="Enter email address" />
+                    <span asp-validation-for="Email" class="validation-error"></span>
+                </div>
 
+                <div class="form-group">
+                    <label asp-for="FirstName" class="form-label">First Name</label>
+                    <input asp-for="FirstName" name="firstName" class="form-input" placeholder="Enter first name" />
+                    <span asp-validation-for="FirstName" class="validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="LastName" class="form-label">Last Name</label>
+                    <input asp-for="LastName" name="lastName" class="form-input" placeholder="Enter last name" />
+                    <span asp-validation-for="LastName" class="validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="UserRole" class="form-label">User Role *</label>
+                    <select asp-for="UserRole" name="userRole" class="form-select">
+                        <option value="User">User</option>
+                        <option value="Admin">Admin</option>
+                    </select>
+                    <span asp-validation-for="UserRole" class="validation-error"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">Password</label>
+                    <input asp-for="Password" name="password" class="form-input" type="password" placeholder="Enter password" />
+                    <span asp-validation-for="Password" class="validation-error"></span>
+                    <small class="form-text">Required for new users. Leave empty when updating to keep current password.</small>
+                </div>
+
+                @if (TempData["UserError"] != null)
+                {
+                    <div style="color: #FF6B6B; background-color: rgba(255, 107, 107, 0.1); border: 1px solid #FF6B6B; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; text-align: center; font-weight: 500;">
+                        @TempData["UserError"]
+                    </div>
+                }
+
+                @if (TempData["UserSuccess"] != null)
+                {
+                    <div style="color: #32CD32; background-color: rgba(50, 205, 50, 0.1); border: 1px solid #32CD32; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; text-align: center; font-weight: 500;">
+                        @TempData["UserSuccess"]
+                    </div>
+                }
+
+                <div class="button-group">
+                    <div class="button-row">
+                    <button type="submit" formaction="@Url.Action("AddUser")" formmethod="post" class="btn-form btn-success">Add</button>
+                    <button type="submit" formaction="@Url.Action("UpdateUser")" formmethod="post" class="btn-form btn-warning">Update</button>
+                    <button type="submit" formaction="@Url.Action("DeleteUser")" formmethod="post" class="btn-form btn-danger"
+                            onclick="return confirm('Are you sure you want to delete this user?');">
+                        Delete
+                    </button>
+                    </div>
+                    <div class="button-row">
+                    <button type="submit" class="btn-form btn-primary">Search</button>
+                    <button type="submit" formaction="@Url.Action("ShowAll")" formmethod="post" class="btn-form btn-primary">Show All</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Right Grid -->
+        <div class="users-display">
+            <h2>Users List</h2>
+            @if (Model.UsersTable != null && Model.UsersTable.Rows.Count > 0)
+            {
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Username</th>
+                            <th>Full Name</th>
+                            <th>Email</th>
+                            <th>User Role</th>
+                            <th>Password</th>
+                            <th>Entry Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (System.Data.DataRow row in Model.UsersTable.Rows)
+                        {
+                            <tr onclick="fillForm('@row["UserName"]', '@row["Email"]', '@Html.Raw(row["FullName"]?.ToString().Split(' ')[0] ?? "")', '@Html.Raw(row["FullName"]?.ToString().Split(' ').Skip(1).FirstOrDefault() ?? "")', '@row["UserRole"]')">
+                                <td>@row["UserId"]</td>
+                                <td>@row["UserName"]</td>
+                                <td>@row["FullName"]</td>
+                                <td>@row["Email"]</td>
+                                <td>@row["UserRole"]</td>
+                                <td><span class="encrypted-password">Encrypted</span></td>
+                                <td>@(((DateTime)row["EntryDate"]).ToString("MM/dd/yyyy"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div style="display: flex; justify-content: center; align-items: center; height: 70%;">
+                    <p style="text-align: center; font-size: 1.2rem; color: #F5DEB3;">
+                        No users found.
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
 </div>
+
+<style>
+    .container {
+        max-width: 1600px;
+        margin: .5rem auto;
+        padding: 0 20px;
+        color: #F5DEB3;
+    }
+
+    .users-container {
+        display: grid;
+        grid-template-columns: minmax(280px, 1fr) 5fr;
+        gap: 1rem;
+        min-height: 700px;
+        margin-bottom: 1rem;
+    }
+
+    .user-management {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 20px;
+        padding: 0.4rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(245, 222, 179, 0.1);
+        animation: slideUp 0.3s ease-out;
+        position: sticky;
+    }
+
+        .user-management h2, .users-display h2 {
+            color: #F5DEB3;
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: .5rem;
+            text-align: center;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            border-bottom: 2px solid #8B4513;
+        }
+
+    .users-display {
+        background: rgba(255, 255, 255, 0.04);
+        padding: .4rem;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(245, 222, 179, 0.1);
+        animation: slideUp 0.3s ease-out;
+        min-height: 500px;
+    }
+
+    .form-body {
+        padding: .5rem .5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-size: 0.8rem;
+    }
+
+    .form-input,
+    .form-select {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+    }
+
+    .button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .btn-form {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        gap: 0.5rem;
+        min-width: 80px;
+    }
+
+    .form-text {
+        font-size: 0.7rem;
+        color: #C0A672;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    .users-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        overflow: hidden;
+        font-size: 14px;
+    }
+
+        .users-table th,
+        .users-table td {
+            padding: 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(245, 222, 179, 0.1);
+            color: #F5DEB3;
+        }
+
+        .users-table th {
+            background: linear-gradient(135deg, #8B4513 0%, #5D2F0F 100%);
+            font-weight: 600;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+
+        .users-table tr:hover {
+            background: rgba(139, 69, 19, 0.1);
+            cursor: pointer;
+        }
+
+    .encrypted-password {
+        font-style: italic;
+        color: #C0A672;
+    }
+</style>
+
+<script>
+    function fillForm(username, email, firstName, lastName, userRole) {
+        document.querySelector('input[name="username"]').value = username;
+        document.querySelector('input[name="email"]').value = email;
+        document.querySelector('input[name="firstName"]').value = firstName;
+        document.querySelector('input[name="lastName"]').value = lastName;
+        document.querySelector('select[name="userRole"]').value = userRole;
+        document.querySelector('input[name="password"]').value = '';
+    }
+
+    function clearForm() {
+        document.getElementById('userForm').reset();
+    }
+</script>

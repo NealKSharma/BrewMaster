@@ -3,14 +3,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 
 namespace BrewMaster.Utilities
 {
-    public class RoleAuthorizeAttribute : ActionFilterAttribute
+    public class RoleAuthorizeAttribute(string role) : ActionFilterAttribute
     {
-        private readonly string _role;
-
-        public RoleAuthorizeAttribute(string role)
-        {
-            _role = role;
-        }
+        private readonly string _role = role;
 
         public override void OnActionExecuting(ActionExecutingContext context)
         {

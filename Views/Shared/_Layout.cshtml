@@ -46,7 +46,11 @@
                     else if (userRole == "User")
                     {
                         <li><a class="btn" asp-controller="User" asp-action="Index">Products</a></li>
-                        <li><a class="btn" asp-controller="User" asp-action="Cart">Cart</a></li>
+                        <li>
+                            <a class="btn" asp-controller="User" asp-action="Cart">
+                                🛒 Cart (<span id="cart-count">0</span>)
+                            </a>
+                        </li>
                         <li><a class="btn" asp-controller="User" asp-action="Account">Account</a></li>
                     }
                     else if (userRole == "Admin")
@@ -86,10 +90,30 @@
         <a href="#" class="social-link">Social</a>
         <a href="#" class="social-link">Social</a>
     </div>
+    
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+                document.addEventListener("DOMContentLoaded", function () {
+            const badge = document.getElementById('cart-count');
+            if (!badge) return;
+
+            fetch('/User/GetCartCount')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && typeof data.count === 'number') {
+                        badge.textContent = data.count;
+                    } else {
+                        badge.textContent = "0";
+                    }
+                })
+                .catch(() => {
+                    badge.textContent = "0";
+                });
+        });
+
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

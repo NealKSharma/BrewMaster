@@ -1,9 +1,525 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model BrewMaster.Models.HomeViewModel
+@using System.Text.Encodings.Web
+
+@{
+    ViewData["Title"] = "Home";
 }
 
-<div>
+<style>
+    .home-container {
+        min-height: 100vh;
+    }
 
-    <h1>Home Page - User</h1>
+    /* Toast Styles */
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+    }
 
+    .toast {
+        background: rgba(245, 222, 179, 0.95);
+        color: #1a1a1a;
+        padding: 1rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        transform: translateX(400px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(139, 69, 19, 0.3);
+        font-weight: 600;
+        min-width: 250px;
+    }
+
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: linear-gradient(135deg, #32CD32 0%, #228B22 100%);
+            color: #F5DEB3;
+            border-color: rgba(50, 205, 50, 0.5);
+        }
+
+        .toast.error {
+            background: linear-gradient(135deg, #FF6B6B 0%, #DC143C 100%);
+            color: #F5DEB3;
+            border-color: rgba(255, 107, 107, 0.5);
+        }
+
+    /* Hero Section */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(139, 69, 19, 0.8) 0%, rgba(93, 47, 15, 0.9) 100%);
+        border-radius: 20px;
+        padding: 2rem 2rem;
+        text-align: center;
+        margin: 0 auto 2rem;
+        max-width: 1600px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(245, 222, 179, 0.2);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .hero-content h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        color: #F5DEB3;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        background: linear-gradient(135deg, #F5DEB3 0%, #DAA520 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .hero-content p {
+        font-size: 1.4rem;
+        color: rgba(245, 222, 179, 0.9);
+        font-weight: 400;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Products Grid */
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(750px, 1fr));
+        gap: 2rem;
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+        align-items: start;
+    }
+
+
+    /* Product Card */
+    .product-card {
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        overflow: hidden;
+        transition: opacity 0.6s ease, transform 0.6s ease;
+        border: 1px solid rgba(245, 222, 179, 0.1);
+        backdrop-filter: blur(15px);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
+
+        .product-card.pre-animate {
+            opacity: 0;
+            transform: translateY(30px);
+            visibility: hidden;
+        }
+
+        .product-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(245, 222, 179, 0.3);
+        }
+
+            .product-card:hover::before {
+                opacity: 1;
+            }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(139, 69, 19, 0.1) 0%, rgba(93, 47, 15, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+            border-radius: 20px;
+        }
+
+    /* Product Image */
+    .product-image {
+        flex: 0 0 250px;
+        height: auto;
+        max-height: none;
+        background: linear-gradient(135deg, #2d1b1b 0%, #1a1a1a 100%);
+        overflow: hidden;
+        position: relative;
+    }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .product-overlay {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+
+    .stock-status {
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+        .stock-status.in-stock {
+            background: linear-gradient(135deg, #32CD32 0%, #228B22 100%);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .stock-status.low-stock {
+            background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);
+            color: #1a1a1a;
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+        }
+
+        .stock-status.out-of-stock {
+            background: linear-gradient(135deg, #DC143C 0%, #B22222 100%);
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+    /* Product Info */
+    .product-info {
+        flex: 1;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .product-name {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #F5DEB3;
+        margin-bottom: 0.75rem;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        line-height: 1.3;
+    }
+
+    .product-description {
+        font-size: 0.95rem;
+        color: rgba(245, 222, 179, 0.8);
+        margin-bottom: 1rem;
+        line-height: 1.5;
+        min-height: 60px;
+    }
+
+    .product-price {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #DAA520;
+        margin-bottom: 1.5rem;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .product-actions {
+        margin-top: auto;
+    }
+
+    .add-to-cart-btn {
+        width: 100%;
+        padding: 0.875rem 1.5rem;
+        background: linear-gradient(135deg, #8B4513 0%, #5D2F0F 100%);
+        color: #F5DEB3;
+        border: none;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(139, 69, 19, 0.4);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .add-to-cart-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .add-to-cart-btn:hover::before {
+            left: 100%;
+        }
+
+        .add-to-cart-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(139, 69, 19, 0.6);
+            background: linear-gradient(135deg, #A0522D 0%, #8B4513 100%);
+        }
+
+        .add-to-cart-btn:active {
+            transform: translateY(0);
+        }
+
+        .add-to-cart-btn:disabled {
+            background: linear-gradient(135deg, #666 0%, #444 100%);
+            color: #999;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+            .add-to-cart-btn:disabled:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+    .no-products {
+        text-align: center;
+        padding: 4rem 2rem;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    .no-products-message {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(245, 222, 179, 0.1);
+    }
+
+    .no-products-icon {
+        font-size: 4rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.7;
+    }
+
+    .no-products-message h3 {
+        font-size: 2rem;
+        color: #F5DEB3;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .no-products-message p {
+        font-size: 1.1rem;
+        color: rgba(245, 222, 179, 0.8);
+        margin: 0;
+    }
+
+    .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(245, 222, 179, 0.3);
+        border-radius: 50%;
+        border-top-color: #F5DEB3;
+        animation: spin 1s ease-in-out infinite;
+    }
+
+    .product-card {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+
+        .product-card:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .product-card:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .product-card:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .product-card:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        .product-card:nth-child(5) {
+            animation-delay: 0.5s;
+        }
+
+        .product-card:nth-child(6) {
+            animation-delay: 0.6s;
+        }
+</style>
+
+<div class="home-container">
+    <!-- Toast Container -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- Hero Section -->
+    <div class="hero-section">
+        <div class="hero-content">
+            <h1>Welcome to Our Store</h1>
+            <p>Discover amazing products at great prices</p>
+        </div>
+    </div>
+
+    @if (Model.HasProducts)
+    {
+        <div class="products-grid">
+            @foreach (var product in Model.Products)
+            {
+                <div class="product-card pre-animate">
+                    <div class="product-image">
+                        <img src="@Url.Action("ProductImage", Model.IsGuest ? "Home" : "User", new { id = product.ProductId })" />
+                        <div class="product-overlay">
+                            <div class="stock-status @product.StockClass">
+                                @product.StockStatus
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-info">
+                        <h3 class="product-name">@product.ProductName</h3>
+                        <p class="product-description">@product.TruncatedDescription(250)</p>
+                        <div class="product-price">@product.FormattedPrice</div>
+
+                        @if (!Model.IsGuest)
+                        {
+                            <div class="product-actions">
+                                <button type="button"
+                                        class="add-to-cart-btn @(product.IsAvailable ? "" : "disabled")"
+                                        @(product.IsAvailable ? "" : "disabled")
+                                        onclick="addToCart(event, @product.ProductId, '@product.ProductName')">
+                                    <span class="btn-text">Add to Cart</span>
+                                    <span class="btn-loading" style="display: none;">
+                                        <span class="loading"></span> Adding...
+                                    </span>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+    }
+    else
+    {
+        <div class="no-products">
+            <div class="no-products-message">
+                <div class="no-products-icon">📦</div>
+                <h3>No products available</h3>
+                <p>Please check back later for new arrivals!</p>
+            </div>
+        </div>
+    }
 </div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+    <script>
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (!string.IsNullOrEmpty(Model.ToastMessage))
+            {
+                    var encodedMsg = JavaScriptEncoder.Default.Encode(Model.ToastMessage);
+                    <text>
+                        showToast("@encodedMsg", "@Model.ToastType");
+                    </text>
+            }
+        });
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 100);
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    if (container.contains(toast)) {
+                        container.removeChild(toast);
+                    }
+                }, 300);
+            }, 2000);
+        }
+
+        function addToCart(event, productId, productName) {
+            if (@Model.IsGuest.ToString().ToLower()) {
+                window.location.href = '/Home/Login';
+                return;
+            }
+
+            const button = event.target.closest('.add-to-cart-btn');
+            const btnText = button.querySelector('.btn-text');
+            const btnLoading = button.querySelector('.btn-loading');
+
+            button.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-flex';
+
+            const formData = new FormData();
+            formData.append('productId', productId);
+            formData.append('__RequestVerificationToken', token);
+
+            fetch('/User/AddToCart', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    window.location.reload();
+                } else {
+                    showToast(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showToast('An error occurred. Please try again.', 'error');
+            })
+            .finally(() => {
+                button.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+                    const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.remove('pre-animate');
+                    entry.target.style.visibility = 'visible';
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(card);
+            });
+        });
+    </script>
+}

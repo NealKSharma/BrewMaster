@@ -6,6 +6,130 @@
     var table = ViewBag.ProductTable as DataTable;
 }
 
+<div class="product-container">
+
+    <div class="product-management">
+        <h2>Manager</h2>
+        <form id="productForm" method="post" asp-action="ManageProducts" enctype="multipart/form-data" class="form-body">
+
+            <!-- Hidden ProductId field -->
+            <input type="hidden" asp-for="ProductId" id="hiddenProductId" />
+
+            <div class="form-group">
+                <label asp-for="ProductName" class="form-label">Product Name</label>
+                <input asp-for="ProductName" class="form-input" placeholder="Enter the Product Name" />
+                <span asp-validation-for="ProductName" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ProductDescription" class="form-label">Product Description</label>
+                <textarea asp-for="ProductDescription" class="form-input" rows="4" placeholder="Enter the Product Description"></textarea>
+                <span asp-validation-for="ProductDescription" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Price" class="form-label">Price</label>
+                <input asp-for="Price" class="form-input" placeholder="Enter the price" />
+                <span asp-validation-for="Price" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Stock" class="form-label">Stock</label>
+                <input asp-for="Stock" class="form-input" placeholder="Enter the stock" />
+                <span asp-validation-for="Stock" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ImageUpload" class="form-label">Product Image</label>
+                <input asp-for="ImageUpload" type="file" class="form-input" name="ImageUpload" />
+                <span asp-validation-for="ImageUpload" class="validation-error"></span>
+            </div>
+
+            <div id="message-container">
+                @if (TempData["ProductError"] != null)
+                {
+                    <div style="color: #FF6B6B; background-color: rgba(255, 107, 107, 0.1); border: 1px solid #FF6B6B; border-radius: 8px; padding: 0.5rem 0.5rem; margin-bottom: 1rem; text-align: center; font-weight: 500; font-size: 16px;">
+                        @TempData["ProductError"]
+                    </div>
+                }
+
+                @if (TempData["ProductSuccess"] != null)
+                {
+                    <div style="color: #32CD32; background-color: rgba(50, 205, 50, 0.1); border: 1px solid #32CD32; border-radius: 8px; padding: 0.5rem 0.5rem; margin-bottom: 1rem; text-align: center; font-weight: 500; font-size: 16px;">
+                        @TempData["ProductSuccess"]
+                    </div>
+                }
+            </div>
+
+            <input type="hidden" id="formAction" name="action" />
+
+            <div class="button-group">
+                <small style="text-align: center; font-size: 14px">Select from table to Update or Delete</small>
+                <div class="button-row">
+                    <button type="submit" onclick="setFormAction('Add')" class="btn-form btn-success">Add</button>
+                    <button type="submit" onclick="setFormAction('Update')" class="btn-form btn-warning" id="updateBtn" disabled>Update</button>
+                    <button type="submit" onclick="setFormAction('Delete')" class="btn-form btn-danger" id="deleteBtn" disabled>Delete</button>
+                </div>
+                <div class="button-row">
+                    <button type="button" onclick="clearForm()" class="btn-form btn-primary" formnovalidate>Clear Form</button>
+                    <button type="submit" onclick="setFormAction('ShowAll')" class="btn-form btn-primary" formnovalidate>Show All</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="product-display">
+        <h2>Products List</h2>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Search products by name..." class="search-input" />
+            <div class="search-info" id="searchInfo"></div>
+        </div>
+
+        <div id="products-table-container">
+            @if (table != null && table.Rows.Count > 0)
+            {
+                <table class="product-table" id="productTable">
+                    <thead>
+                        <tr>
+                            @foreach (DataColumn col in table.Columns)
+                            {
+                                <th>@col.ColumnName</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (DataRow row in table.Rows)
+                        {
+                            <tr onclick="fillForm('@row["ProductId"]', '@Html.Raw(row["ProductName"]?.ToString().Replace("'", "\\'"))', '@Html.Raw(row["ProductDescription"]?.ToString().Replace("'", "\\'").Replace("\n", "\\n").Replace("\r", ""))', '@row["Price"]', '@row["Stock"]')" style="cursor: pointer;" class="product-row">
+                                @foreach (var item in row.ItemArray)
+                                {
+                                    @if (item is byte[] bytes)
+                                    {
+                                        <td>[Image Stored]</td>
+                                    }
+                                    else
+                                    {
+                                        <td>@item</td>
+                                    }
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div style="display: flex; justify-content: center; align-items: center; height: 70%;">
+                    <p style="text-align: center; font-size: 1.2rem; color: #F5DEB3;">
+                        No products found.
+                    </p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
 <style>
     .container {
         max-width: 1600px;
@@ -19,6 +143,41 @@
         grid-template-columns: minmax(280px, 1fr) 5fr;
         gap: 1rem;
         min-height: 700px;
+    }
+
+    .search-container {
+        margin-bottom: 1rem;
+        padding: 0 0.5rem;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1px solid rgba(245, 222, 179, 0.3);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #F5DEB3;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
+    }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #8B4513;
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 10px rgba(139, 69, 19, 0.3);
+        }
+
+        .search-input::placeholder {
+            color: rgba(245, 222, 179, 0.6);
+        }
+
+    .search-info {
+        margin-top: 0.5rem;
+        font-size: 0.85rem;
+        color: rgba(245, 222, 179, 0.7);
+        text-align: center;
     }
 
     .product-management {
@@ -53,6 +212,44 @@
         min-height: 500px;
     }
 
+    .product-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background: rgba(255, 255, 255, 0.02);
+        border-radius: 12px;
+        overflow: hidden;
+        font-size: 14px;
+    }
+
+        .product-table th,
+        .product-table td {
+            padding: 0.75rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(245, 222, 179, 0.1);
+            color: #F5DEB3;
+        }
+
+        .product-table th {
+            background: linear-gradient(135deg, #8B4513 0%, #5D2F0F 100%);
+            font-weight: 600;
+            font-size: 0.875rem;
+            letter-spacing: 0.5px;
+        }
+
+        .product-table tr:hover {
+            background: rgba(139, 69, 19, 0.1);
+        }
+
+        .product-table .selected-row {
+            background: rgba(139, 69, 19, 0.2) !important;
+            border-left: 3px solid #8B4513;
+        }
+
+        .product-table .hidden-row {
+            display: none;
+        }
+
     .form-body {
         padding: .5rem .5rem;
     }
@@ -73,13 +270,6 @@
         gap: 0.75rem;
     }
 
-    .button-row {
-        display: flex;
-        gap: 0.75rem;
-        width: 100%;
-        justify-content: center;
-    }
-
     .btn-form {
         display: inline-flex;
         align-items: center;
@@ -96,104 +286,97 @@
         min-width: 80px;
     }
 
-    
+        .btn-form:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 </style>
 
+<script>
+    let selectedRowElement = null;
 
-<div class="product-container">
+    function setFormAction(actionName) {
+        document.getElementById('formAction').value = actionName;
+    }
 
-    <div class="product-management">
-        <h2>Manager</h2>
-        <form asp-action="ManageProducts" method="post" enctype="multipart/form-data" class="form-body">
-            <div class="form-group">
-                <label asp-for="ProductId" class="form-label">Product ID</label>
-                <input asp-for="ProductId" class="form-input" placeholder="Enter the Product ID" />
-                <span asp-validation-for="ProductId" class="validation-error"></span>
-            </div>
+    function fillForm(productId, productName, productDescription, price, stock) {
+        document.getElementById('hiddenProductId').value = productId;
+        document.querySelector('input[name="ProductName"]').value = productName;
+        document.querySelector('textarea[name="ProductDescription"]').value = productDescription;
+        document.querySelector('input[name="Price"]').value = price;
+        document.querySelector('input[name="Stock"]').value = stock;
 
-            <div class="form-group">
-                <label asp-for="ProductName" class="form-label">Product Name</label>
-                <input asp-for="ProductName" class="form-input" placeholder="Enter the Product Name" />
-                <span asp-validation-for="ProductName" class="validation-error"></span>
-            </div>
+        document.getElementById('updateBtn').disabled = false;
+        document.getElementById('deleteBtn').disabled = false;
 
-            <div class="form-group">
-                <label asp-for="ProductDescription" class="form-label">Product Description</label>
-                <textarea asp-for="ProductDescription" class="form-input" rows="4" placeholder="Enter the Product Description"></textarea>
-                <span asp-validation-for="ProductDescription" class="validation-error"></span>
-            </div>
+        if (selectedRowElement) {
+            selectedRowElement.classList.remove('selected-row');
+        }
+        selectedRowElement = event.target.closest('tr');
+        selectedRowElement.classList.add('selected-row');
 
-            <div class="form-group">
-                <label asp-for="Price" class="form-label">Price</label>
-                <input asp-for="Price" class="form-input" placeholder="Enter the price" />
-                <span asp-validation-for="Price" class="validation-error"></span>
-            </div>
+        document.querySelector('.product-management').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
-            <div class="form-group">
-                <label asp-for="Stock" class="form-label">Stock</label>
-                <input asp-for="Stock" class="form-input" placeholder="Enter the stock" />
-                <span asp-validation-for="Stock" class="validation-error"></span>
-            </div>
+    function clearForm() {
+        document.getElementById('hiddenProductId').value = '';
+        document.querySelector('input[name="ProductName"]').value = '';
+        document.querySelector('textarea[name="ProductDescription"]').value = '';
+        document.querySelector('input[name="Price"]').value = '';
+        document.querySelector('input[name="Stock"]').value = '';
+        document.querySelector('input[name="ImageUpload"]').value = '';
 
-            <div class="form-group">
-                <label asp-for="ImageUpload" class="form-label">Product Image</label>
-                <input asp-for="ImageUpload" type="file" class="form-input" />
-                <span asp-validation-for="ImageUpload" class="validation-error"></span>
-            </div>
+        document.getElementById('updateBtn').disabled = true;
+        document.getElementById('deleteBtn').disabled = true;
 
-            <div class="button-group">
-                <div class="button-row">
-                    <button type="submit" name="action" value="Add" class="btn-form btn-success">Add</button>
-                    <button type="submit" name="action" value="Update" class="btn-form btn-warning">Update</button>
-                    <button type="submit" name="action" value="Delete" class="btn-form btn-danger">Delete</button>
-                </div>
-                <div class="button-row">
-                    <button type="submit" name="action" value="Search" class="btn-form btn-primary">Search</button>
-                    <button type="submit" name="action" value="ShowAll" class="btn-form btn-primary">Show All</button>
-                </div>
-            </div>
-        </form>
-    </div>
+        if (selectedRowElement) {
+            selectedRowElement.classList.remove('selected-row');
+            selectedRowElement = null;
+        }
+    }
 
-    <div class="product-display">
-        @if (table != null && table.Rows.Count > 0)
-        {
-            <h3>Products List</h3>
-            <table class="product-table">
-                <thead>
-                    <tr>
-                        @foreach (DataColumn col in table.Columns)
-                        {
-                            <th>@col.ColumnName</th>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        const searchInfo = document.getElementById('searchInfo');
+        const productTable = document.getElementById('productTable');
+
+        if (searchInput && productTable) {
+            searchInput.addEventListener('input', function() {
+                const originalTerm = this.value.trim();
+                const searchTerm = originalTerm.toLowerCase();
+                const rows = productTable.querySelectorAll('tbody .product-row');
+                let visibleCount = 0;
+
+                rows.forEach(row => {
+                    const productNameCell = row.cells[1];
+
+                    if (productNameCell) {
+                        const productName = productNameCell.textContent.toLowerCase();
+
+                        if (searchTerm === '' || productName.includes(searchTerm)) {
+                            row.classList.remove('hidden-row');
+                            visibleCount++;
+                        } else {
+                            row.classList.add('hidden-row');
                         }
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (DataRow row in table.Rows)
-                    {
-                        <tr>
-                            @foreach (var item in row.ItemArray)
-                            {
-                                <td>
-                                    @if (item is byte[] bytes)
-                                    {
-                                        var base64 = Convert.ToBase64String(bytes);
-                                        <img src="data:image/png;base64,@base64" width="60" />
-                                    }
-                                    else
-                                    {
-                                        @item
-                                    }
-                                </td>
-                            }
-                        </tr>
                     }
-                </tbody>
-            </table>
+                });
+
+                if (searchTerm === '') {
+                    searchInfo.textContent = '';
+                } else {
+                    searchInfo.textContent = `Found ${visibleCount} product(s) matching "${originalTerm}"`;
+                }
+
+                if (selectedRowElement && selectedRowElement.classList.contains('hidden-row')) {
+                    clearForm();
+                }
+            });
         }
-        else
-        {
-            <p>No products found.</p>
+
+        const totalRows = document.querySelectorAll('.product-row').length;
+        if (searchInfo && totalRows > 0) {
+            searchInfo.textContent = `Showing ${totalRows} product(s)`;
         }
-    </div>
-</div>
+    });
+</script>

@@ -7,14 +7,9 @@ using Microsoft.Extensions.Configuration;
 
 namespace BrewMaster.Data
 {
-    public class ErrorLogger
+    public class ErrorLogger(IConfiguration config)
     {
-        private readonly IConfiguration _config;
-
-        public ErrorLogger(IConfiguration config)
-        {
-            _config = config;
-        }
+        private readonly IConfiguration _config = config;
 
         public void LogError(Exception ex)
         {
@@ -34,23 +29,19 @@ namespace BrewMaster.Data
                     lineNumber = frame.GetFileLineNumber();
                 }
 
-                using (var con = new SqlConnection(_config.GetConnectionString("BrewMaster")))
-                {
-                    string query = @"INSERT INTO ErrorLog (ErrorMessage, ErrorFileName, MethodName, LineNumber, StackTrace) 
+                using var con = new SqlConnection(_config.GetConnectionString("BrewMaster"));
+                string query = @"INSERT INTO ErrorLog (ErrorMessage, ErrorFileName, MethodName, LineNumber, StackTrace) 
                                      VALUES (@ErrorMessage, @ErrorFileName, @MethodName, @LineNumber, @StackTrace)";
 
-                    using (var cmd = new SqlCommand(query, con))
-                    {
-                        cmd.Parameters.AddWithValue("@ErrorMessage", ex.Message);
-                        cmd.Parameters.AddWithValue("@ErrorFileName", errorFileName);
-                        cmd.Parameters.AddWithValue("@MethodName", methodName);
-                        cmd.Parameters.AddWithValue("@LineNumber", lineNumber);
-                        cmd.Parameters.AddWithValue("@StackTrace", ex.StackTrace ?? "");
+                using var cmd = new SqlCommand(query, con);
+                cmd.Parameters.AddWithValue("@ErrorMessage", ex.Message);
+                cmd.Parameters.AddWithValue("@ErrorFileName", errorFileName);
+                cmd.Parameters.AddWithValue("@MethodName", methodName);
+                cmd.Parameters.AddWithValue("@LineNumber", lineNumber);
+                cmd.Parameters.AddWithValue("@StackTrace", ex.StackTrace ?? "");
 
-                        con.Open();
-                        cmd.ExecuteNonQuery();
-                    }
-                }
+                con.Open();
+                cmd.ExecuteNonQuery();
             }
             catch
             {

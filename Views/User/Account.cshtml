@@ -1,9 +1,125 @@
-﻿@{
+﻿@model UserAccountViewModel
+@{
     ViewData["Title"] = "Account";
 }
 
-<div>
+<div class="form-container">
+    <div class="form-header">
+        <h2>Account Information</h2>
+    </div>
 
-    <h1>Account</h1>
-
+    <div class="form-body">
+        <table class="info-table">
+            @foreach (var prop in typeof(UserAccountViewModel).GetProperties().Where(p => p.Name != "UserName"))
+            {
+                var val = prop.GetValue(Model) as string;
+                <tr data-field="@prop.Name">
+                    <td>
+                        <div class="form-label">@prop.Name</div>
+                    </td>
+                    <td>
+                        <span class="field-value @(string.IsNullOrEmpty(val) ? "empty" : "")">
+                            @(!string.IsNullOrEmpty(val) ? val : "Not Provided")
+                        </span>
+                        <input type="text" class="form-input field-edit-input" style="display:none;" />
+                    </td>
+                    <td>
+                        <div class="form-label">
+                            <button class="btn btn-primary edit-btn" title="Edit">✏️</button>
+                            <button class="btn btn-success save-btn" style="display:none;" title="Save">💾</button>
+                        </div>
+                        <span class="error-msg validation-error"></span>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
 </div>
+
+<style>
+    .form-label{
+        margin-bottom: 0;
+    }
+
+    .btn{
+        margin-top: 0.4rem;
+    }
+
+    .form-container {
+        max-width: 1000px;
+        margin: auto;
+    }
+
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .info-table td {
+            padding: 10px;
+            vertical-align: middle;
+        }
+
+    .field-value.empty {
+        color: gray;
+        font-style: italic;
+    }
+
+    input.field-edit-input {
+        width: 80%;
+    }
+</style>
+
+<script>
+    document.querySelectorAll(".edit-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const row = btn.closest("tr");
+            const field = row.dataset.field;
+            const valSpan = row.querySelector(".field-value");
+            const input = row.querySelector(".field-edit-input");
+            const saveBtn = row.querySelector(".save-btn");
+
+            input.value = valSpan.innerText === "Not Provided" ? "" : valSpan.innerText.trim();
+            valSpan.style.display = "none";
+            input.style.display = "inline-block";
+            btn.style.display = "none";
+            saveBtn.style.display = "inline-block";
+        });
+    });
+
+    document.querySelectorAll(".save-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const row = btn.closest("tr");
+            const field = row.dataset.field;
+            const input = row.querySelector(".field-edit-input");
+            const valSpan = row.querySelector(".field-value");
+            const editBtn = row.querySelector(".edit-btn");
+            const errorSpan = row.querySelector(".error-msg");
+
+            const value = input.value.trim();
+
+            fetch("/User/UpdateField", {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value
+                },
+                body: JSON.stringify({ fieldName: field, fieldValue: value })
+            }).then(res => res.json()).then(data => {
+                if (data.success) {
+                    valSpan.textContent = value || "Not Provided";
+                    valSpan.classList.toggle("empty", !value);
+                    input.style.display = "none";
+                    valSpan.style.display = "inline-block";
+                    btn.style.display = "none";
+                    editBtn.style.display = "inline-block";
+                    errorSpan.textContent = "";
+                } else {
+                    errorSpan.textContent = data.message || "Update failed.";
+                }
+            }).catch(() => {
+                errorSpan.textContent = "Something went wrong.";
+            });
+        });
+    });
+</script>
