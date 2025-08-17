@@ -6,6 +6,43 @@
 
 <div class="logs-container">
     <!-- Left Form Panel -->
+    <div class="logs-display">
+        <h2>Logs List</h2>
+        @if (Model.LogsTable != null && Model.LogsTable.Rows.Count > 0)
+        {
+            <table class="logs-table">
+                <thead>
+                    <tr>
+                        @foreach (System.Data.DataColumn col in Model.LogsTable.Columns)
+                        {
+                            <th>@col.ColumnName</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (System.Data.DataRow row in Model.LogsTable.Rows)
+                    {
+                        <tr>
+                            @foreach (var item in row.ItemArray)
+                            {
+                                <td>@item?.ToString()</td>
+                            }
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div style="display: flex; justify-content: center; align-items: center; height: 70%;">
+                <p style="text-align: center; font-size: 1.2rem; color: #F5DEB3;">
+                    No logs found.
+                </p>
+            </div>
+        }
+    </div>
+
+    <!-- Right Grid -->
     <div class="logs-management">
         <h2>Log Manager</h2>
         <form asp-action="Logs" method="get" class="form-body" id="logForm">
@@ -51,57 +88,20 @@
                 </button>
             </div>
         </form>
-    </div>
-
-    <!-- Right Grid -->
-    <div class="logs-display">
-        <h2>Logs List</h2>
-        @if (Model.LogsTable != null && Model.LogsTable.Rows.Count > 0)
-        {
-            <table class="logs-table">
-                <thead>
-                    <tr>
-                        @foreach (System.Data.DataColumn col in Model.LogsTable.Columns)
-                        {
-                            <th>@col.ColumnName</th>
-                        }
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (System.Data.DataRow row in Model.LogsTable.Rows)
-                    {
-                        <tr>
-                            @foreach (var item in row.ItemArray)
-                            {
-                                <td>@item?.ToString()</td>
-                            }
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-        else
-        {
-            <div style="display: flex; justify-content: center; align-items: center; height: 70%;">
-                <p style="text-align: center; font-size: 1.2rem; color: #F5DEB3;">
-                    No logs found.
-                </p>
-            </div>
-        }
-    </div>
+    </div>    
 </div>
 
 <style>
     .container {
         max-width: 1600px;
-        margin: .5rem auto;
+        margin: 0rem auto;
         padding: 0 20px;
         color: #F5DEB3;
     }
 
     .logs-container {
         display: grid;
-        grid-template-columns: minmax(280px, 1fr) 5fr;
+        grid-template-columns: 5fr minmax(280px, 1fr);
         gap: 1rem;
         min-height: 700px;
         margin-bottom: 1rem;
@@ -169,6 +169,7 @@
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
+        transition: all 0.3s ease;
         text-decoration: none;
         gap: 0.5rem;
         min-width: 80px;

@@ -24,9 +24,7 @@ namespace BrewMaster.Models
         [Display(Name = "User Role")]
         public string UserRole { get; set; } = "User";
 
-        [StringLength(255, MinimumLength = 6, ErrorMessage = "Password must be between 6 and 255 characters")]
-        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])[A-Za-z\d@$!%*?&]{6,}$",
-            ErrorMessage = "Password must contain at least one uppercase and one lowercase letter")]
+        [Required(ErrorMessage = "Password is required")]
         public string? Password { get; set; }
 
         public DataTable? UsersTable { get; set; }

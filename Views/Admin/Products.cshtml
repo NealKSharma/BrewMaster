@@ -8,76 +8,6 @@
 
 <div class="product-container">
 
-    <div class="product-management">
-        <h2>Manager</h2>
-        <form id="productForm" method="post" asp-action="ManageProducts" enctype="multipart/form-data" class="form-body">
-
-            <!-- Hidden ProductId field -->
-            <input type="hidden" asp-for="ProductId" id="hiddenProductId" />
-
-            <div class="form-group">
-                <label asp-for="ProductName" class="form-label">Product Name</label>
-                <input asp-for="ProductName" class="form-input" placeholder="Enter the Product Name" />
-                <span asp-validation-for="ProductName" class="validation-error"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="ProductDescription" class="form-label">Product Description</label>
-                <textarea asp-for="ProductDescription" class="form-input" rows="4" placeholder="Enter the Product Description"></textarea>
-                <span asp-validation-for="ProductDescription" class="validation-error"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Price" class="form-label">Price</label>
-                <input asp-for="Price" class="form-input" placeholder="Enter the price" />
-                <span asp-validation-for="Price" class="validation-error"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="Stock" class="form-label">Stock</label>
-                <input asp-for="Stock" class="form-input" placeholder="Enter the stock" />
-                <span asp-validation-for="Stock" class="validation-error"></span>
-            </div>
-
-            <div class="form-group">
-                <label asp-for="ImageUpload" class="form-label">Product Image</label>
-                <input asp-for="ImageUpload" type="file" class="form-input" name="ImageUpload" />
-                <span asp-validation-for="ImageUpload" class="validation-error"></span>
-            </div>
-
-            <div id="message-container">
-                @if (TempData["ProductError"] != null)
-                {
-                    <div style="color: #FF6B6B; background-color: rgba(255, 107, 107, 0.1); border: 1px solid #FF6B6B; border-radius: 8px; padding: 0.5rem 0.5rem; margin-bottom: 1rem; text-align: center; font-weight: 500; font-size: 16px;">
-                        @TempData["ProductError"]
-                    </div>
-                }
-
-                @if (TempData["ProductSuccess"] != null)
-                {
-                    <div style="color: #32CD32; background-color: rgba(50, 205, 50, 0.1); border: 1px solid #32CD32; border-radius: 8px; padding: 0.5rem 0.5rem; margin-bottom: 1rem; text-align: center; font-weight: 500; font-size: 16px;">
-                        @TempData["ProductSuccess"]
-                    </div>
-                }
-            </div>
-
-            <input type="hidden" id="formAction" name="action" />
-
-            <div class="button-group">
-                <small style="text-align: center; font-size: 14px">Select from table to Update or Delete</small>
-                <div class="button-row">
-                    <button type="submit" onclick="setFormAction('Add')" class="btn-form btn-success">Add</button>
-                    <button type="submit" onclick="setFormAction('Update')" class="btn-form btn-warning" id="updateBtn" disabled>Update</button>
-                    <button type="submit" onclick="setFormAction('Delete')" class="btn-form btn-danger" id="deleteBtn" disabled>Delete</button>
-                </div>
-                <div class="button-row">
-                    <button type="button" onclick="clearForm()" class="btn-form btn-primary" formnovalidate>Clear Form</button>
-                    <button type="submit" onclick="setFormAction('ShowAll')" class="btn-form btn-primary" formnovalidate>Show All</button>
-                </div>
-            </div>
-        </form>
-    </div>
-
     <div class="product-display">
         <h2>Products List</h2>
 
@@ -128,19 +58,89 @@
             }
         </div>
     </div>
+
+    <div class="product-management">
+        <h2>Product Manager</h2>
+        <form id="productForm" method="post" asp-action="ManageProducts" enctype="multipart/form-data" class="form-body">
+
+            <!-- Hidden ProductId field -->
+            <input type="hidden" asp-for="ProductId" id="hiddenProductId" />
+
+            <div class="form-group">
+                <label asp-for="ProductName" class="form-label">Product Name</label>
+                <input asp-for="ProductName" class="form-input" placeholder="Enter the Product Name" />
+                <span asp-validation-for="ProductName" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ProductDescription" class="form-label">Product Description</label>
+                <textarea asp-for="ProductDescription" class="form-input" rows="4" placeholder="Enter the Product Description"></textarea>
+                <span asp-validation-for="ProductDescription" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Price" class="form-label">Price</label>
+                <input asp-for="Price" class="form-input" placeholder="Enter the price" value="@(Model.Price == 0 ? "" : Model.Price.ToString())" />
+                <span asp-validation-for="Price" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="Stock" class="form-label">Stock</label>
+                <input asp-for="Stock" class="form-input" placeholder="Enter the stock" value="@(Model.Stock == 0 ? "" : Model.Stock.ToString())" />
+                <span asp-validation-for="Stock" class="validation-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="ImageUpload" class="form-label">Product Image</label>
+                <input asp-for="ImageUpload" type="file" class="form-input" name="ImageUpload" />
+                <span asp-validation-for="ImageUpload" class="validation-error"></span>
+            </div>
+
+            <div id="message-container">
+                @if (TempData["ProductError"] != null)
+                {
+                    <div style="color: #FF6B6B; background-color: rgba(255, 107, 107, 0.1); border: 1px solid #FF6B6B; border-radius: 8px; padding: 0.5rem 0.5rem; margin-bottom: 1rem; text-align: center; font-weight: 500; font-size: 16px;">
+                        @TempData["ProductError"]
+                    </div>
+                }
+
+                @if (TempData["ProductSuccess"] != null)
+                {
+                    <div style="color: #32CD32; background-color: rgba(50, 205, 50, 0.1); border: 1px solid #32CD32; border-radius: 8px; padding: 0.5rem 0.5rem; margin-bottom: 1rem; text-align: center; font-weight: 500; font-size: 16px;">
+                        @TempData["ProductSuccess"]
+                    </div>
+                }
+            </div>
+
+            <input type="hidden" id="formAction" name="action" />
+
+            <div class="button-group">
+                <small style="text-align: center; font-size: 14px">Select from table to Update or Delete</small>
+                <div class="button-row">
+                    <button type="submit" onclick="setFormAction('Add')" class="btn-form btn-success">Add</button>
+                    <button type="submit" onclick="setFormAction('Update')" class="btn-form btn-warning" id="updateBtn" disabled>Update</button>
+                    <button type="submit" onclick="setFormAction('Delete')" class="btn-form btn-danger" id="deleteBtn" disabled>Delete</button>
+                </div>
+                <div class="button-row">
+                    <button type="button" onclick="clearForm()" class="btn-form btn-primary" formnovalidate>Clear Form</button>
+                    <button type="submit" onclick="setFormAction('ShowAll')" class="btn-form btn-primary" formnovalidate>Show All</button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
 <style>
     .container {
         max-width: 1600px;
-        margin: .5rem auto;
+        margin: 0rem auto;
         padding: 0 20px;
         color: #F5DEB3;
     }
 
     .product-container {
         display: grid;
-        grid-template-columns: minmax(280px, 1fr) 5fr;
+        grid-template-columns: 5fr minmax(280px, 1fr);
         gap: 1rem;
         min-height: 700px;
     }

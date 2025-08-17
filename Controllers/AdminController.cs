@@ -231,14 +231,14 @@ namespace BrewMaster.Controllers
         }
 
         [HttpGet]
-        public IActionResult Users(string searchUsername = null)
+        public IActionResult Users(string Username = null)
         {
             try
             {
                 var model = new UserManagementViewModel
                 {
-                    SearchUsername = searchUsername,
-                    UsersTable = _helper.GetUsers(searchUsername)
+                    SearchUsername = Username,
+                    UsersTable = _helper.GetUsers(Username)
                 };
                 return View(model);
             }
@@ -251,7 +251,7 @@ namespace BrewMaster.Controllers
         }
 
         [HttpPost]
-        public IActionResult ShowAll()
+        public IActionResult ShowAllUsers()
         {
             return RedirectToAction("Users");
         }
@@ -271,7 +271,6 @@ namespace BrewMaster.Controllers
                     string currentUser = HttpContext.Session.GetString("UserName") ?? "Unknown";
                     _helper.AddUser(model.Email, model.Username, model.Password,
                                       model.FirstName, model.LastName, model.UserRole, currentUser);
-                    TempData["UserSuccess"] = "User added successfully.";
                 }
                 else
                 {
@@ -293,11 +292,6 @@ namespace BrewMaster.Controllers
         {
             try
             {
-                if (string.IsNullOrEmpty(model.Username))
-                {
-                    ModelState.AddModelError("Username", "Username is required for updates");
-                }
-
                 if (string.IsNullOrEmpty(model.Password))
                 {
                     ModelState.Remove("Password");
@@ -309,11 +303,7 @@ namespace BrewMaster.Controllers
                     bool success = _helper.UpdateUser(model.Username, model.Email,
                                                         model.FirstName, model.LastName,
                                                         model.UserRole, model.Password, currentUser);
-                    if (success)
-                    {
-                        TempData["UserSuccess"] = "User updated successfully.";
-                    }
-                    else
+                    if (!success)
                     {
                         TempData["UserError"] = "User not found.";
                     }
@@ -342,11 +332,7 @@ namespace BrewMaster.Controllers
                 {
                     string currentUser = HttpContext.Session.GetString("UserName") ?? "Unknown";
                     bool success = _helper.DeleteUser(username, currentUser);
-                    if (success)
-                    {
-                        TempData["UserSuccess"] = "User deleted successfully.";
-                    }
-                    else
+                    if (!success)
                     {
                         TempData["UserError"] = "User not found.";
                     }

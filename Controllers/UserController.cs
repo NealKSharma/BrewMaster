@@ -1,6 +1,7 @@
 ﻿using BrewMaster.Data;
 using BrewMaster.Models;
 using BrewMaster.Utilities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 
@@ -16,10 +17,11 @@ namespace BrewMaster.Controllers
         {
             try
             {
-                var model = new HomeViewModel();
-                model.Products = _helper.GetAvailableProducts();
+                var model = new HomeViewModel
+                {
+                    Products = _helper.GetAvailableProducts()
+                };
 
-                // Check for toast messages from TempData
                 if (TempData["ToastMessage"] != null)
                 {
                     model.ToastMessage = TempData["ToastMessage"]?.ToString();
@@ -59,7 +61,6 @@ namespace BrewMaster.Controllers
                 return Json(new { success = false, message = "An unexpected error occurred. Please try again later." });
             }
         }
-
 
         [HttpGet]
         public IActionResult ProductImage(int id)
@@ -160,10 +161,16 @@ namespace BrewMaster.Controllers
         public IActionResult Checkout()
         {
             int userId = int.Parse(HttpContext.Session.GetString("UserId")!);
+            var username = HttpContext.Session.GetString("UserName");
+            if (string.IsNullOrEmpty(username)) return RedirectToAction("Login", "Landing");
 
             try
             {
-                _helper.ClearCart(userId);
+                var user = _helper.GetUserDetails(username);
+                var cart = _helper.GetCartItems(userId);
+
+                _helper.PlaceOrder(userId, user, cart);
+
                 TempData["ToastMessage"] = "Order placed successfully!";
                 TempData["ToastType"] = "success";
                 return RedirectToAction("Index", "Home");
@@ -172,7 +179,7 @@ namespace BrewMaster.Controllers
             {
                 _errorLogger.LogError(ex);
                 TempData["ErrorMessage"] = "Checkout failed. Please try again.";
-                return RedirectToAction("Index");
+                return RedirectToAction("Index", "Cart");
             }
         }
 
@@ -204,17 +211,21 @@ namespace BrewMaster.Controllers
         }
 
         [HttpPost]
-        public JsonResult UpdateField([FromBody] UserAccountFieldUpdateViewModel update)
+        public JsonResult UpdateAllFields([FromBody] Dictionary<string, string> updatedFields)
         {
             string? username = HttpContext.Session.GetString("UserName");
             if (string.IsNullOrEmpty(username))
                 return Json(new { success = false, message = "Session expired. Please log in again." });
 
-            var success = _helper.UpdateSingleField(username, update.FieldName, update.FieldValue);
-            if (!success)
-                return Json(new { success = false, message = "Update failed." });
+            bool allSuccess = true;
 
-            return Json(new { success = true, message = "Field updated successfully." });
+            foreach (var field in updatedFields)
+            {
+                bool success = _helper.UpdateSingleField(username, field.Key, field.Value);
+                if (!success) allSuccess = false;
+            }
+
+            return Json(new { success = allSuccess, message = allSuccess ? "All fields updated successfully." : "Some fields could not be updated." });
         }
     }
 }

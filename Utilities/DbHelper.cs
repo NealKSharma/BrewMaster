@@ -306,16 +306,34 @@ namespace BrewMaster.Utilities
             try
             {
                 using var con = new SqlConnection(GetCon());
-                string query = "DELETE FROM tblProducts WHERE ProductId = @Id";
-
-                using var cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@Id", model.ProductId);
-
                 con.Open();
-
                 SetSessionUser(con, currentUser);
+                using var tran = con.BeginTransaction();
 
-                return cmd.ExecuteNonQuery() > 0;
+                try
+                {
+                    string deleteCartQuery = "DELETE FROM tblCart WHERE ProductId = @Id";
+                    using (var cmdCart = new SqlCommand(deleteCartQuery, con, tran))
+                    {
+                        cmdCart.Parameters.AddWithValue("@Id", model.ProductId);
+                        cmdCart.ExecuteNonQuery();
+                    }
+
+                    string deleteProductQuery = "DELETE FROM tblProducts WHERE ProductId = @Id";
+                    using (var cmdProduct = new SqlCommand(deleteProductQuery, con, tran))
+                    {
+                        cmdProduct.Parameters.AddWithValue("@Id", model.ProductId);
+                        cmdProduct.ExecuteNonQuery();
+                    }
+
+                    tran.Commit();
+                    return true;
+                }
+                catch
+                {
+                    tran.Rollback();
+                    throw;
+                }
             }
             catch (Exception ex)
             {
@@ -585,19 +603,53 @@ namespace BrewMaster.Utilities
 
         public bool DeleteUser(string username, string currentUser)
         {
-            using var connection = new SqlConnection(GetCon());
-            connection.Open();
+            try
+            {
+                using var connection = new SqlConnection(GetCon());
+                connection.Open();
 
-            SetSessionUser(connection, currentUser);
+                SetSessionUser(connection, currentUser);
 
-            string query = "DELETE FROM tblUserMaster WHERE UserName = @UserName";
+                using var tran = connection.BeginTransaction();
 
-            using var command = new SqlCommand(query, connection);
-            command.Parameters.AddWithValue("@UserName", username.Trim());
+                try
+                {
+                    // 1. Delete related cart items for this user
+                    string deleteCartQuery = @"DELETE c
+                                                FROM tblCart AS c
+                                                INNER JOIN tblUserMaster AS u ON c.UserId = u.UserId
+                                                WHERE u.UserName = @UserName";
 
-            int rowsAffected = command.ExecuteNonQuery();
-            return rowsAffected > 0;
+                    using (var cmdCart = new SqlCommand(deleteCartQuery, connection, tran))
+                    {
+                        cmdCart.Parameters.AddWithValue("@UserName", username.Trim());
+                        cmdCart.ExecuteNonQuery();
+                    }
+
+                    // 2. Delete the user
+                    string deleteUserQuery = "DELETE FROM tblUserMaster WHERE UserName = @UserName";
+                    using (var cmdUser = new SqlCommand(deleteUserQuery, connection, tran))
+                    {
+                        cmdUser.Parameters.AddWithValue("@UserName", username.Trim());
+                        cmdUser.ExecuteNonQuery();
+                    }
+
+                    tran.Commit();
+                    return true;
+                }
+                catch
+                {
+                    tran.Rollback();
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorLogger.LogError(ex);
+                return false;
+            }
         }
+
 
         private static string HashPassword(string password)
         {
@@ -850,24 +902,78 @@ namespace BrewMaster.Utilities
             }
         }
 
-        public bool ClearCart(int userId)
+        public int PlaceOrder(int userId, UserAccountViewModel user, CartViewModel cart)
         {
             try
             {
+                if (cart.Items.Count == 0)
+                    throw new Exception("Cart is empty");
+
+                decimal orderTotal = cart.Items.Sum(i => i.Price * i.Quantity);
+
                 using var con = new SqlConnection(GetCon());
                 con.Open();
+                using var tran = con.BeginTransaction();
+                try
+                {
+                    // Insert order
+                    using var cmdOrder = new SqlCommand(@"
+                INSERT INTO tblOrders 
+                (UserId, OrderTotal, OrderStatus, StreetAddress, City, UserState, PostalCode, Country, Mobile)
+                OUTPUT INSERTED.OrderId
+                VALUES
+                (@UserId, @OrderTotal, @OrderStatus, @StreetAddress, @City, @UserState, @PostalCode, @Country, @Mobile)
+                ", con, tran);
 
-                string query = "DELETE FROM tblCart WHERE UserId = @UserId";
-                using var cmd = new SqlCommand(query, con);
-                cmd.Parameters.AddWithValue("@UserId", userId);
-                return cmd.ExecuteNonQuery() > 0;
+                    cmdOrder.Parameters.AddWithValue("@UserId", userId);
+                    cmdOrder.Parameters.AddWithValue("@OrderTotal", orderTotal);
+                    cmdOrder.Parameters.AddWithValue("@OrderStatus", "Pending");
+                    cmdOrder.Parameters.AddWithValue("@StreetAddress", user.StreetAddress ?? "");
+                    cmdOrder.Parameters.AddWithValue("@City", user.City ?? "");
+                    cmdOrder.Parameters.AddWithValue("@UserState", user.UserState ?? "");
+                    cmdOrder.Parameters.AddWithValue("@PostalCode", user.PostalCode ?? "");
+                    cmdOrder.Parameters.AddWithValue("@Country", user.Country ?? "");
+                    cmdOrder.Parameters.AddWithValue("@Mobile", user.Mobile ?? "");
+
+                    int orderId = (int)cmdOrder.ExecuteScalar();
+
+                    // Insert order items
+                    foreach (var item in cart.Items)
+                    {
+                        using var cmdItem = new SqlCommand(@"
+                    INSERT INTO tblOrderItems (OrderId, ProductId, Quantity, Price)
+                    VALUES (@OrderId, @ProductId, @Quantity, @Price)
+                    ", con, tran);
+
+                        cmdItem.Parameters.AddWithValue("@OrderId", orderId);
+                        cmdItem.Parameters.AddWithValue("@ProductId", item.ProductId);
+                        cmdItem.Parameters.AddWithValue("@Quantity", item.Quantity);
+                        cmdItem.Parameters.AddWithValue("@Price", item.Price);
+
+                        cmdItem.ExecuteNonQuery();
+                    }
+
+                    using var cmdClear = new SqlCommand("DELETE FROM tblCart WHERE UserId = @UserId", con, tran);
+                    cmdClear.Parameters.AddWithValue("@UserId", userId);
+                    cmdClear.ExecuteNonQuery();
+
+                    tran.Commit();
+                    return orderId;
+                }
+                catch (Exception ex)
+                {
+                    _errorLogger.LogError(ex);
+                    tran.Rollback();
+                    throw;
+                }
             }
             catch (Exception ex)
             {
                 _errorLogger.LogError(ex);
-                return false;
+                return -1; // Indicate failure
             }
         }
+
 
         public int GetCartItemCount(int userId)
         {

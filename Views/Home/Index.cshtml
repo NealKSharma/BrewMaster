@@ -1,15 +1,407 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model BrewMaster.Models.HomeViewModel
+@using System.Text.Encodings.Web
+
+@{
+    ViewData["Title"] = "Welcome";
+}
+
+<div class="landing-page">
+    <div id="toastContainer" class="toast-container"></div>
+
+    <section class="hero">
+        <div class="hero-grid">
+            <div class="hero-content">
+                <h1><span class="emoji">☕</span> BrewMaster</h1>
+                <p>BrewMaster is your one-stop destination for premium coffee, tea, and brewing essentials. 
+                    <br />We handpick the finest beans and blends from around the world to bring you a rich café 
+                    experience at home.
+                    <br />With fast delivery, easy ordering, and a commitment to 
+                    quality, BrewMaster makes it simple to enjoy your favorite brews anytime, anywhere.</p>
+                <a asp-controller="Home" asp-action="SignUp" class="btn-cta">Shop Now</a>
+            </div>
+
+            <div class="hero-image">
+                <img src="/Images/LandingPageCoffee.png" alt="Coffee Cup Illustration" />
+            </div>
+        </div>
+
+        <div class="scroll-down">
+            <span>Scroll Down</span>
+            <div class="arrow"></div>
+        </div>
+    </section>
+
+    <section class="features">
+        <div class="feature">
+            <div class="feature-icon">✨</div>
+            <h3>Premium Quality</h3>
+            <p>Only the best beans and brews curated for you.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">🛍</div>
+            <h3>Wide Selection</h3>
+            <p>Explore coffee, tea, and accessories in one place.</p>
+        </div>
+        <div class="feature">
+            <div class="feature-icon">🚚</div>
+            <h3>Fast Delivery</h3>
+            <p>Get your favorites shipped to your door quickly.</p>
+        </div>
+    </section>
+
+    @if (Model.HasProducts)
+    {
+        <section class="preview" id="products">
+            <h2>Popular Products</h2>
+            <div class="products-grid">
+                @foreach (var product in Model.Products.Take(3))
+                {
+                    <div class="product-card">
+                        <div class="product-image">
+                            <img src="@Url.Action("ProductImage", "Home", new { id = product.ProductId })" />
+                        </div>
+                        <div class="product-info">
+                            <h3>@product.ProductName</h3>
+                            <div class="product-price">@product.FormattedPrice</div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <a asp-controller="Home" asp-action="SignUp" class="btn-secondary">View All Products</a>
+        </section>
+    }
+    else
+    {
+        <div class="no-products">
+            <p>📦 No products available right now. Check back soon!</p>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            @if (!string.IsNullOrEmpty(Model.ToastMessage))
+            {
+                                var encodedMsg = JavaScriptEncoder.Default.Encode(Model.ToastMessage);
+                                <text>
+                                    showToast("@encodedMsg", "@Model.ToastType");
+                                </text>
+            }
+
+            document.querySelector('.scroll-down').addEventListener('click', () => {
+                document.getElementById('products').scrollIntoView({ behavior: 'smooth' });
+            });
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            });
+
+            document.querySelectorAll('.feature, .product-card').forEach(el => {
+                el.style.opacity = '0';
+                el.style.transform = 'translateY(30px)';
+                el.style.transition = 'all 0.6s ease';
+                observer.observe(el);
+            });
+        });
+
+        function showToast(message, type) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                toast.remove();
+            }, 3000);
+        }
+    </script>
 }
 
 <style>
-    .container{
-        margin: 7rem;
-        max-width: 600px;
+
+    .landing-page {
+        margin-top: -80px;
+        padding-top: 40px;
+    }
+
+    .hero {
+        background: linear-gradient(135deg, #6B3E1D 0%, #8B4513 50%, #A0522D 100%);
+        padding: 5rem 2rem 12rem;
+        border-radius: 0 0 40px 40px;
+        position: relative;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .hero-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3rem;
+        align-items: center;
+        max-width: 1300px;
+        margin: 0 auto;
+    }
+
+    .hero-content h1 {
+        font-size: clamp(2.5rem, 5vw, 4rem);
+        margin-bottom: 1rem;
+        background: linear-gradient(45deg, #FFD700, #FFA500);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+        .hero-content h1 .emoji {
+            background: none;
+            -webkit-background-clip: initial;
+            -webkit-text-fill-color: initial;
+        }
+    .hero-content p {
+        font-size: 1.35rem;
+        margin-bottom: 2rem;
+        line-height: 1.7;
+        color: #FFF8E1;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+
+    .btn-cta {
+        background: linear-gradient(45deg, #FFD700, #FFA500);
+        color: #1a1a1a;
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        font-weight: bold;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 215, 0, 0.5);
+        }
+
+    .hero-image {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        animation: float 8s ease-in-out infinite;
+    }
+
+        .hero-image img {
+            width: 100%;
+            max-width: 450px;
+            border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+    @@keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    .scroll-down {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        text-align: center;
+        animation: bounce 2s infinite;
+        cursor: pointer;
+        transition: opacity 0.3s;
+    }
+
+        .scroll-down:hover {
+            opacity: 0.7;
+        }
+
+        .scroll-down span {
+            display: block;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: #FFF8E1;
+        }
+
+        .scroll-down .arrow {
+            width: 20px;
+            height: 20px;
+            border-left: 3px solid #FFF8E1;
+            border-bottom: 3px solid #FFF8E1;
+            transform: rotate(-45deg);
+            margin: 0 auto;
+        }
+
+    @@keyframes bounce {
+        0%, 20%, 50%, 80%, 100% {
+            transform: translate(-50%, 0);
+        }
+
+        40% {
+            transform: translate(-50%, -10px);
+        }
+
+        60% {
+            transform: translate(-50%, -5px);
+        }
+    }
+
+    .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 2rem;
+        margin: 4rem auto;
+        max-width: 1000px;
+        padding: 0 2rem;
+    }
+
+    .feature {
+        background: rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        text-align: center;
+        border: 1px solid rgba(218, 165, 32, 0.2);
+        transition: all 0.3s ease;
+    }
+
+        .feature:hover {
+            transform: translateY(-5px);
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(218, 165, 32, 0.4);
+        }
+
+    .feature-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .feature h3 {
+        color: #DAA520;
+        margin-bottom: 1rem;
+        font-size: 1.3rem;
+    }
+
+    .preview {
+        text-align: center;
+        margin: 4rem auto;
+        max-width: 1200px;
+        padding: 0 2rem;
+    }
+
+        .preview h2 {
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #F5DEB3;
+        }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 2rem 0;
+    }
+
+    .product-card {
+        background: rgba(255,255,255,0.08);
+        border-radius: 20px;
+        padding: 1.5rem;
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(218, 165, 32, 0.1);
+        transition: all 0.3s ease;
+    }
+
+        .product-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255,255,255,0.12);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+    .product-image img {
+        width: 100%;
+        border-radius: 15px;
+        transition: transform 0.3s;
+    }
+
+    .product-card:hover .product-image img {
+        transform: scale(1.05);
+    }
+
+    .product-info h3 {
+        color: #F5DEB3;
+        margin: 1rem 0 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .product-price {
+        color: #DAA520;
+        font-size: 1.3rem;
+        font-weight: bold;
+    }
+
+    .btn-secondary {
+        display: inline-block;
+        margin-top: 2rem;
+        background: linear-gradient(45deg, #5D2F0F, #8B4513);
+        color: #F5DEB3;
+        padding: 1rem 2rem;
+        border-radius: 50px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        border: 1px solid rgba(218, 165, 32, 0.3);
+    }
+
+        .btn-secondary:hover {
+            transform: translateY(-2px);
+            background: linear-gradient(45deg, #8B4513, #A0522D);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+
+    .toast {
+        background: rgba(218, 165, 32, 0.9);
+        color: #1a1a1a;
+        padding: 1rem 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        transform: translateX(300px);
+        transition: transform 0.3s ease;
+    }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+
+    @@media (max-width: 768px) {
+        .hero-grid {
+            grid-template-columns: 1fr;
+            text-align: center;
+        }
+
+        .hero {
+            padding: 3rem 1rem 1rem;
+        }
+
+        .features, .preview {
+            padding: 0 1rem;
+        }
     }
 </style>
-
-<div>
-
-    <h1>BrewMaster</h1>
-</div>

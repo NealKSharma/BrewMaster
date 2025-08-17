@@ -6,24 +6,31 @@
 
 html, body {
     height: 100%;
-    font-size: 14px;
 }
 
 body {
     display: flex;
     flex-direction: column;
-    font-size: 18px;
+    font-size: 16px;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     line-height: 1.6;
     color: #F5DEB3;
     background: linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 100%);
     background-attachment: fixed;
+    padding-top: 80px;
 }
 
 .header {
-    background: transparent;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d1b1b 100%);
+    background-attachment: fixed;
+    border-bottom: 1px solid rgba(245, 222, 179, 0.2);
     margin-bottom: 1rem;
-    padding: 1rem;
+    padding: 0.5rem;
 }
 
 .header-content {
@@ -110,7 +117,7 @@ body {
 
 /* Form Elements */
 .form-group {
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
 }
 
 .form-label {
@@ -330,32 +337,6 @@ input[type="file"].form-input {
         transform: translateY(0);
     }
 }
-
-.floating-social-links {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    display: flex;
-    flex-direction: row;
-    gap: 0.75rem;
-    z-index: 9999;
-}
-
-    .floating-social-links .social-link {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background: rgba(205, 133, 63, 0.2);
-        border-radius: 20px;
-        color: #f5deb3;
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-    }
-
-        .floating-social-links .social-link:hover {
-            background: rgba(205, 133, 63, 0.4);
-            transform: translateY(-2px);
-        }
 
 @keyframes fadeInUp {
     from {

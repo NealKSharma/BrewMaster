@@ -19,18 +19,23 @@ namespace BrewMaster.Controllers
             {
                 var model = new HomeViewModel
                 {
-                    Products = _helper.GetAvailableProducts(),
-                    IsGuest = true
+                    Products = _helper.GetAvailableProducts()
                 };
 
-                return View("~/Views/User/Index.cshtml", model);
+                if (TempData["ToastMessage"] != null)
+                {
+                    model.ToastMessage = TempData["ToastMessage"]?.ToString();
+                    model.ToastType = TempData["ToastType"]?.ToString() ?? "info";
+                }
+
+                return View(model);
             }
             catch (Exception ex)
             {
                 _errorLogger.LogError(ex);
                 TempData["ToastMessage"] = "An error occurred while loading products.";
                 TempData["ToastType"] = "error";
-                return View("~/Views/User/Index.cshtml", new HomeViewModel { IsGuest = true });
+                return View(new HomeViewModel());
             }
         }
 
