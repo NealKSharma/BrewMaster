@@ -56,29 +56,29 @@ The platform features a fully dynamic product listing page that pulls available 
 ## Interface
 
 ### Landing Page 
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/2088ee2c-de2c-4ece-85e0-fadaba8dd5b9" />
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/cc0b8c9e-1ac4-483e-8710-51dfcf1b322a" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/2088ee2c-de2c-4ece-85e0-fadaba8dd5b9" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/cc0b8c9e-1ac4-483e-8710-51dfcf1b322a" />
 
 ### Sign Up and Login Pages
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/6715dc27-1cda-4b8b-bf4c-7ca22d8571d0" />
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/b608ec1a-241d-4298-9304-b92343ed6808" />
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/fce1ddcb-0c0a-426b-aa30-21ce1286a2c5" />
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/e6fea930-d7f1-4bf7-b494-be6fffe48125" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/6715dc27-1cda-4b8b-bf4c-7ca22d8571d0" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/b608ec1a-241d-4298-9304-b92343ed6808" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/fce1ddcb-0c0a-426b-aa30-21ce1286a2c5" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/e6fea930-d7f1-4bf7-b494-be6fffe48125" />
 
 ### Admin - Dashboard and Log Management Pages
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/018474bd-10fd-44e7-95ac-e58c20018095" />
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/8f95b07a-6aaf-4113-aed5-9d0fc07b43a6" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/018474bd-10fd-44e7-95ac-e58c20018095" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/8f95b07a-6aaf-4113-aed5-9d0fc07b43a6" />
 
 ### Admin - User and Product Management Pages
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/abdb5298-1bf5-432b-964b-d6c1aa5b368a" />
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/f67f80cc-acf0-4457-b723-c601bc61744b" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/abdb5298-1bf5-432b-964b-d6c1aa5b368a" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/f67f80cc-acf0-4457-b723-c601bc61744b" />
 
 ### User - Dynamic Product Listing and Cart Pages
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/d464977f-fcfe-4638-bfdf-8a8cc9ac17d0" />
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/9e07d07a-7f8a-41e6-9701-b39f7da973ea" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/d464977f-fcfe-4638-bfdf-8a8cc9ac17d0" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/9e07d07a-7f8a-41e6-9701-b39f7da973ea" />
 
 ### User - Account Page
-<img width="455" alt="image" src="https://github.com/user-attachments/assets/2d7c6499-602c-464d-b915-ddca94168450" />
+<img width="400" alt="image" src="https://github.com/user-attachments/assets/2d7c6499-602c-464d-b915-ddca94168450" />
 
 ---
 
